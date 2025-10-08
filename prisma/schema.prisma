@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -27,13 +26,21 @@ model Admin {
   peminjaman Peminjaman[]
 }
 
+model KategoriBuku {
+  id            Int       @id @default(autoincrement())
+  namaKategori  String   
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt 
+
+  buku          Buku[]
+}
 
 model Buku {
   id              Int      @id @default(autoincrement())
+  idKategori      Int
   judulBuku       String
   penulis         String
   penerbit        String
-  kategori        String
   tanggalTerbit   DateTime
   jumlahHalaman   Int
   noisbn          String   @unique
@@ -41,6 +48,7 @@ model Buku {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  kategoriBuku    KategoriBuku @relation(fields: [idKategori], references: [id])
   detail_peminjaman DetailPeminjaman[]
 }
 

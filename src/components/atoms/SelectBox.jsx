@@ -1,0 +1,16 @@
+export default function SelectBox({ id, placeholder, name, icon, children, ...props }) {
+    return (
+        <div className="relative">
+            {icon && (
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                    <i className={`text-gray-500 ${icon}`} />
+                </div>
+            )}
+            
+            <select id={id} name={name} {...props}
+                className="w-full py-3 pl-10 pr-3 mt-1 text-white transition-all duration-200 bg-gray-500 bg-opacity-50 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                {children} placeholder={placeholder}
+            </select>
+        </div>
+    );
+}

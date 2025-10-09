@@ -3,7 +3,7 @@ import Button from "../atoms/Button";
 import { useState } from "react";
 import { alertError, alertSuccess } from "../../lib/alert/sweetAlert";
 
-export default function CategoryModalBox({onAddCategory}) {
+export default function CategoryModalBox({onSuccess}) {
     const [namaKategori, setNamaKategori] = useState("");
 
     const createCategory = async (namaKategori) => {
@@ -20,7 +20,7 @@ export default function CategoryModalBox({onAddCategory}) {
             setNamaKategori("");
             return {res, data};
         } catch(e) {
-            console.error("Failed to fetch categories", e);   
+            console.error("Gagal Membuat Data", e);   
             return { res: { status: 500 }, data: { errors: ["Terjadi kesalahan"] } };
         } 
     };
@@ -29,10 +29,9 @@ export default function CategoryModalBox({onAddCategory}) {
         e.preventDefault();
 
         const {res, data} = await createCategory(namaKategori);
-        // const responseBody = await response.json(); 
-        if(res.status === 201) {
+        if(res.ok) {
             await alertSuccess("Kategori Berhasil Ditambahkan");
-            if (onAddCategory) onAddCategory(data);
+            if (onSuccess) onSuccess();
         } else {
             await alertError(data.errors || ["Terjadi kesalahan"]);
         }

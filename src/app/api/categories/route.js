@@ -5,16 +5,16 @@ import prisma from "@/lib/prisma";
 export async function GET() {
     try {
         const categories = await prisma.kategoriBuku.findMany({
-        orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: "desc" },
         });
         return new Response(JSON.stringify(categories), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
+            status: 200,
+            headers: { "Content-Type": "application/json" },
         });
     } catch (error) {
         return new Response(JSON.stringify({ error: "Gagal mengambil data" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
+            status: 500,
+            headers: { "Content-Type": "application/json" },
         });
     }
 }

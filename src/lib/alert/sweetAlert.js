@@ -3,7 +3,7 @@ import Swal from 'sweetalert2';
 export const alertSuccess = (message) => {
     return Swal.fire({
         icon: 'success',
-        title: 'Success',
+        title: 'Berhasil',
         text: message,
     });
 }   
@@ -18,13 +18,13 @@ export const alertError = (message) => {
 
 export const alertConfirm = async (message) => {
     const result = await Swal.fire({
-        title: 'Are you sure?',
+        title: 'Kamu Yakin?',
         text: message,
         icon: 'question',
         showCancelButton: true,
         confirmButtonColor: '#3085d6',
         cancelButtonColor: '#7b021eff',
-        confirmButtonText: 'Yes, delete it!'
+        confirmButtonText: 'Ya, Hapus!'
     });
 
     return result.isConfirmed;

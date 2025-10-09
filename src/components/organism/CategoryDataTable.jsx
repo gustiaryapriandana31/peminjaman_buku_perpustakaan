@@ -2,32 +2,47 @@
 
 import { useState, useEffect } from "react";
 import React from "react";
+import Button from "../atoms/Button";
+import { alertConfirm, alertError, alertSuccess } from "../../lib/alert/sweetAlert";
 
-export default function CategoryDataTable({categories, setCategories}) {
+export default function CategoryDataTable({categories = [], onDeleteSuccess}) {
     const [expandedRows, setExpandedRows] = useState([]);
-
-    const getCategories = async () => {
-        try {
-            const res = await fetch("/api/categories", {
-                method: "GET",
-                headers: { "Accept": "application/json" },
-            });
-            const data = await res.json();
-            setCategories(data);
-        } catch(e) {
-            console.error("Failed to fetch categories", e);   
-        } 
-    };
-    
-    useEffect(() => {
-        getCategories();
-    }, []);
 
     const toggleRow = (id) => {
         setExpandedRows((prev) =>
         prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
         );
     };
+
+    const deleteCategory = async (id) => {
+        try {
+            const res = await fetch(`/api/categories/${id}`, {
+                method: "DELETE",
+                headers: { 
+                    "Accept": "application/json",
+                }
+            });
+            const data = await res.json(); // ✅ baca respon JSON
+            return { res, data };
+        } catch(e) {
+            console.error("Gagal Membuat Data", e);   
+            return { res: { status: 500 }, data: { errors: ["Terjadi kesalahan"] } };
+        } 
+    };
+
+    async function handleCategoryDelete(id) {
+        if(!await alertConfirm("Ingin hapus data kategori ini? Menghapus kategori ini akan menghapus data buku yang kategorinya ini.")) {
+            return;
+        } 
+
+        const {res, data} = await deleteCategory(id);
+        if (res.ok) {
+            await alertSuccess("Kategori berhasil dihapus!");
+            onDeleteSuccess?.(); // 🔁 Refresh data di parent
+        } else {
+            await alertError(data.error || "Gagal menghapus kategori.");
+        } 
+    }
 
     return (
         <div className="p-4 bg-white border shadow-lg sm:p-6 rounded-2xl">
@@ -73,27 +88,13 @@ export default function CategoryDataTable({categories, setCategories}) {
                                 </td>
                                 <td className="px-3 py-2">
                                     <div className="flex flex-wrap justify-center gap-2 md:flex-nowrap md:justify-start">
-                                    <a
-                                        href="#"
-                                        className="inline-flex items-center px-3 py-1 text-xs font-medium text-white transition bg-blue-500 rounded-lg sm:text-sm hover:bg-blue-600"
-                                    >
-                                        <i className="mr-1 fa-solid fa-book"></i> Lihat
-                                    </a>
-                                    <button
-                                        className="inline-flex items-center px-3 py-1 text-xs font-medium text-white transition bg-red-500 rounded-lg sm:text-sm hover:bg-red-600"
-                                        onClick={(e) => {
-                                        e.stopPropagation();
-                                        if (
-                                            confirm(
-                                            "Menghapus kategori ini akan menghapus pengetahuannya juga. Yakin?"
-                                            )
-                                        ) {
-                                            // logic hapus
-                                        }
-                                        }}
-                                    >
-                                        <i className="mr-1 fa-duotone fa-trash-can"></i> Hapus
-                                    </button>
+                                        <Button type="button" onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCategoryDelete(category.id)
+                                            }} 
+                                            className="inline-flex items-center px-3 py-1 text-xs font-medium text-white transition bg-red-500 rounded-lg sm:text-sm hover:bg-red-600">
+                                            <i className="mr-2 fas fa-trash-alt" /> Hapus Data
+                                        </Button>
                                     </div>
                                 </td>
                             </tr>

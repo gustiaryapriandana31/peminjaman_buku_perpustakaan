@@ -1,11 +1,11 @@
 import Labels from "../atoms/Labels";
 import SelectBox from "../atoms/SelectBox";
 
-export default function FormFieldSelect({ label, name, icon, children, className}) {
+export default function FormFieldSelect({ label, name, icon, children, className, ...props}) {
     return (
         <div className={`mb-4 ${className}`}>
             {label && <Labels htmlFor={name}>{label}</Labels>}
-            <SelectBox id={name} name={name} icon={icon}>
+            <SelectBox id={name} name={name} icon={icon} {...props}>
                 {children}
             </SelectBox>
         </div>

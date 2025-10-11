@@ -25,7 +25,7 @@ export default function CategoryDataTable({categories = [], onDeleteSuccess}) {
             const data = await res.json(); // ✅ baca respon JSON
             return { res, data };
         } catch(e) {
-            console.error("Gagal Membuat Data", e);   
+            console.error("Gagal Menghapus Data", e);   
             return { res: { status: 500 }, data: { errors: ["Terjadi kesalahan"] } };
         } 
     };
@@ -93,7 +93,7 @@ export default function CategoryDataTable({categories = [], onDeleteSuccess}) {
                                                 handleCategoryDelete(category.id)
                                             }} 
                                             className="inline-flex items-center px-3 py-1 text-xs font-medium text-white transition bg-red-500 rounded-lg sm:text-sm hover:bg-red-600">
-                                            <i className="mr-2 fas fa-trash-alt" /> Hapus Data
+                                            <i className="mr-2 fas fa-trash-alt" /> Hapus
                                         </Button>
                                     </div>
                                 </td>

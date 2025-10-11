@@ -28,7 +28,7 @@ export default function CategoryPage() {
     }, []);
 
     return (
-        <DisplayData title="Manajemen Buku">
+        <DisplayData title="Manajemen Kategori Buku">
             <button
                 onClick={() => setShowModal(true)}
                 className="px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700">
@@ -45,7 +45,7 @@ export default function CategoryPage() {
                             setShowModal(false);
                         }}
                     />  
-                </ModalBox>
+            </ModalBox>
             <CategoryDataTable categories={categories} onDeleteSuccess={fetchCategories}/>
         </DisplayData>
     );

@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function ModalBox({ title, show, onClose, children }) {
+export default function ModalBox({ show, onClose, children }) {
     if (!show) return null;
 
     return (
@@ -27,7 +27,6 @@ export default function ModalBox({ title, show, onClose, children }) {
                     transition={{ duration: 0.25 }}
                 >
                     <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-lg font-semibold">{title}</h2>
                     <button
                         onClick={onClose}
                         className="text-xl text-gray-500 hover:text-gray-700"

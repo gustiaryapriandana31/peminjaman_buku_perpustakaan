@@ -3,23 +3,61 @@ import prisma from "@/lib/prisma";
 
 // GET /api/books
 export async function GET() {
-    const books = await prisma.buku.findMany({ orderBy: { createdAt: "desc" }});
-    return new Response(JSON.stringify(books), { status: 200 });
+    try {
+        const books = await prisma.buku.findMany({ 
+            orderBy: { createdAt: "desc" }
+        });
+
+        return new Response(JSON.stringify(books), {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        });
+    } catch (error) {
+        return new Response(JSON.stringify({ error: "Gagal mengambil data" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+        });
+    }
 }
 
 // POST /api/books
 export async function POST(req) {
-    const body = await req.json();
-    const newBook = await prisma.book.create({
-        data: {
-            judulBuku: body.judulBuku,
-            penulis: body.penulis,
-            penerbit: body.penerbit,
-            tanggalTerbit: body.tanggalTerbit ? new Date(body.tanggalTerbit) : new Date(),
-            jumlahHalaman: body.jumlahHalaman,
-            noisbn: body.noisbn,
-            stokBuku: body.stokBuku
-        },
-    });
-    return new Response(JSON.stringify(newBook), { status: 201 });
+    try {
+        const body = await req.json();
+        const {
+            judulBuku,
+            penulis,
+            penerbit,
+            tanggalTerbit,
+            jumlahHalaman,
+            noisbn,
+            stokBuku,
+            idKategori,
+        } = body;
+        const newBook = await prisma.buku.create({
+            data: {
+                judulBuku,
+                penulis,
+                penerbit,
+                tanggalTerbit: tanggalTerbit ? new Date(tanggalTerbit) : new Date(),
+                jumlahHalaman : parseInt(jumlahHalaman),
+                noisbn,
+                stokBuku: parseInt(stokBuku),
+                kategoriBuku: { connect: { id: parseInt(idKategori) } }
+            },
+            include: {
+                kategoriBuku:true
+            }
+        });
+        return new Response(JSON.stringify(newBook), {
+            status: 201,
+            headers: { "Content-Type": "application/json" },
+        });
+    } catch(error) {
+        console.error("Gagal menambahkan data buku:", error);
+        return new Response(
+            JSON.stringify({ error: error.message || "Gagal menambahkan data buku" }),
+            { status: 500, headers: { "Content-Type": "application/json" } }
+        );
+    }
 }

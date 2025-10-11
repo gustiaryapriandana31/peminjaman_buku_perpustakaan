@@ -20,7 +20,7 @@ export default function CategoryModalBox({onSuccess}) {
             setNamaKategori("");
             return {res, data};
         } catch(e) {
-            console.error("Gagal Membuat Data", e);   
+            console.error("Gagal Menambahkan Data Kategori", e);   
             return { res: { status: 500 }, data: { errors: ["Terjadi kesalahan"] } };
         } 
     };

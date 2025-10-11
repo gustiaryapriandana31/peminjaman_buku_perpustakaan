@@ -21,11 +21,21 @@ export async function GET() {
 
 // POST /api/categories
 export async function POST(req) {
-    const body = await req.json();
-    const newCategory = await prisma.kategoriBuku.create({
-        data: {
-            namaKategori: body.namaKategori,
-        },
-    });
-    return new Response(JSON.stringify(newCategory), { status: 201 });
+    try {
+        const body = await req.json();
+        const newCategory = await prisma.kategoriBuku.create({
+            data: {
+                namaKategori: body.namaKategori,
+            },
+        });
+        return new Response(JSON.stringify(newBook), {
+            status: 201,
+            headers: { "Content-Type": "application/json" },
+        });
+    } catch(error) {
+        return new Response(JSON.stringify({ error: "Gagal menambahkan kategori" }), {
+            status: 500,
+            headers: { "Content-Type": "application/json" },
+        });
+    }
 }

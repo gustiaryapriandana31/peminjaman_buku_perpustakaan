@@ -28,7 +28,7 @@ export async function POST(req) {
                 namaKategori: body.namaKategori,
             },
         });
-        return new Response(JSON.stringify(newBook), {
+        return new Response(JSON.stringify(newCategory), {
             status: 201,
             headers: { "Content-Type": "application/json" },
         });

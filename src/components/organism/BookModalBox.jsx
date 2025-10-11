@@ -6,102 +6,94 @@ import { alertError, alertSuccess } from "../../lib/alert/sweetAlert";
 
 export default function BookModalBox({title, onSuccess, selectedBook=null, mode}) {
     const [categories, setCategories] = useState([]);
-    const [judulBuku, setJudulBuku] = useState("");
-    const [penulis, setPenulis] = useState("");
-    const [penerbit, setPenerbit] = useState("");
-    const [tanggalTerbit, setTanggalTerbit] = useState("");
-    const [jumlahHalaman, setJumlahHalaman] = useState(0);
-    const [noisbn, setNoIsbn] = useState("");
-    const [stokBuku, setStokBuku] = useState(0);
-    const [idKategori, setIdKategori] = useState("");
+    const [isbnExists, setIsbnExists] = useState(false);
+    const [userChangedIsbn, setUserChangedIsbn] = useState(false);
+    const [form, setForm] = useState({
+        judulBuku: "",
+        penulis: "",
+        penerbit: "",
+        tanggalTerbit: "",
+        jumlahHalaman: 0,
+        noisbn: "",
+        stokBuku: 0,
+        idKategori: "",
+    });
 
     useEffect(() => {
         if (selectedBook) {
-            setJudulBuku(selectedBook.judulBuku || "");
-            setPenulis(selectedBook.penulis || "");
-            setPenerbit(selectedBook.penerbit || "");
-            setTanggalTerbit(selectedBook.tanggalTerbit ? selectedBook.tanggalTerbit.split("T")[0] : "");
-            setJumlahHalaman(selectedBook.jumlahHalaman || 0);
-            setNoIsbn(selectedBook.noisbn || "");
-            setStokBuku(selectedBook.stokBuku || 0);
-            setIdKategori(selectedBook.idKategori || "");
+            setForm({
+                judulBuku: selectedBook.judulBuku || "",
+                penulis: selectedBook.penulis || "",
+                penerbit: selectedBook.penerbit || "",
+                tanggalTerbit: selectedBook.tanggalTerbit ? selectedBook.tanggalTerbit.split("T")[0] : "",
+                jumlahHalaman: selectedBook.jumlahHalaman || 0,
+                noisbn: selectedBook.noisbn || "",
+                stokBuku: selectedBook.stokBuku || 0,
+                idKategori: selectedBook.idKategori || "",
+            });
+            setUserChangedIsbn(false);
         }
     }, [selectedBook]);
-    
-    const createBook = async (judulBuku, penulis, penerbit, tanggalTerbit, jumlahHalaman, noisbn, stokBuku, idKategori) => {
-        try {
-            const res = await fetch("/api/books", {
-                method: "POST",
-                headers: { 
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    judulBuku, 
-                    penulis, 
-                    penerbit,
-                    tanggalTerbit, 
-                    jumlahHalaman, 
-                    noisbn, 
-                    stokBuku, 
-                    idKategori
-                })
-            });
-            const data = await res.json();
-            setJudulBuku("");
-            setPenulis("");
-            setPenerbit("");
-            setTanggalTerbit("");
-            setJumlahHalaman("");
-            setNoIsbn("");
-            setStokBuku("");
-            setIdKategori("");
-            return {res, data};
-        } catch(e) {
-            console.error("Gagal Menambahkan Data Buku", e);   
-            return { res: { status: 500 }, data: { errors: ["Terjadi kesalahan"] } };
-        } 
-    };
 
-    const updateBook = async (id, dataBuku) => {
-        try {
-            const res = await fetch(`/api/books/${id}`, {
-                method: "PUT",
-                headers: { 
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(dataBuku)
-            });
-            const data = await res.json();
-            return { res, data };
-        } catch(e) {
-            console.error("Gagal Mengupdate Data Buku", e);   
-            return { res: { status: 500 }, data: { errors: ["Terjadi kesalahan"] } };
+    // 🔍 Cek ISBN unik dengan debounce
+    useEffect(() => {
+        if ((mode === "create" || userChangedIsbn) && form.noisbn.trim() !== "") {
+            const delay = setTimeout(async () => {
+                try {
+                    const res = await fetch(`/api/books/check-isbn?noisbn=${form.noisbn}`);
+                    const { exists } = await res.json();
+                    setIsbnExists(exists);
+                } catch (err) {
+                    console.error("Gagal cek ISBN:", err);
+                }
+            }, 500);
+            return () => clearTimeout(delay);
+        } else {
+            setIsbnExists(false);
         }
-    };
+    }, [form.noisbn, mode, userChangedIsbn]);
     
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const dataBuku = { judulBuku, penulis, penerbit, tanggalTerbit, jumlahHalaman, noisbn, stokBuku, idKategori };
-
-        let res, data;
-        if (mode === "edit" && selectedBook) {
-            ({ res, data } = await updateBook(selectedBook.id, dataBuku));
-        } else if(mode ==="create") {
-            ({ res, data } = await createBook(judulBuku, penulis, penerbit, tanggalTerbit, jumlahHalaman, noisbn, stokBuku, idKategori));
+        // Validasi ISBN
+        if (isbnExists) {
+            await alertError(["Nomor ISBN sudah digunakan!"]);
+            return;
         }
 
+        const res = await fetch(
+            mode === "edit" ? `/api/books/${selectedBook.id}` : "/api/books",
+            {
+                method: mode === "edit" ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(form),
+            }
+        );
+        
         if (res.ok) {
             await alertSuccess(mode === "edit" ? "Data Buku Berhasil Diperbarui" : "Data Buku Berhasil Ditambahkan");
             if (onSuccess) onSuccess();
+            // Reset form setelah tambah buku
+            if (mode === "create") {
+                setForm({
+                    judulBuku: "",
+                    penulis: "",
+                    penerbit: "",
+                    tanggalTerbit: "",
+                    jumlahHalaman: 0,
+                    noisbn: "",
+                    stokBuku: 0,
+                    idKategori: "",
+                });
+                setIsbnExists(false);
+            }
         } else {
-            await alertError(data.errors || ["Terjadi kesalahan"]);
+            const err = await res.json()
+            await alertError(err.error || ["Terjadi kesalahan"]);
         }
     }
 
-    
     // Digunakan untuk mengisi data kategori di select box kategori buku
     const getCategories = async () => {
         try {
@@ -109,7 +101,7 @@ export default function BookModalBox({title, onSuccess, selectedBook=null, mode}
             const data = await res.json();
             setCategories(data);
         } catch(e) {
-            console.error("Failed to fetch categories", e);   
+            console.error("Gagal mendapatkan data kategori buku", e);   
         } 
     };
     
@@ -127,8 +119,8 @@ export default function BookModalBox({title, onSuccess, selectedBook=null, mode}
                         label="Kategori Buku"
                         name="idKategori"
                         id="idKategori"
-                        value={idKategori}
-                        onChange={(e) => setIdKategori(e.target.value)}
+                        value={form.idKategori}
+                        onChange={(e) => setForm({...form, idKategori: e.target.value})}
                         icon="fa fa-list">
                         <option className="text-white" value="" disabled>
                             Pilih kategori Buku
@@ -142,8 +134,8 @@ export default function BookModalBox({title, onSuccess, selectedBook=null, mode}
                     </FormFieldSelect>
                     <FormField
                         readOnly={mode === "view"}
-                        value={judulBuku}
-                        onChange={(e) => setJudulBuku(e.target.value)}
+                        value={form.judulBuku}
+                        onChange={(e) => setForm({...form, judulBuku: e.target.value})}
                         type="text"
                         label="Judul Buku"
                         name="judulBuku"
@@ -153,8 +145,8 @@ export default function BookModalBox({title, onSuccess, selectedBook=null, mode}
                     </FormField>
                     <FormField
                         readOnly={mode === "view"}
-                        value={penulis}
-                        onChange={(e) => setPenulis(e.target.value)}
+                        value={form.penulis}
+                        onChange={(e) => setForm({...form, penulis: e.target.value})}
                         type="text"
                         label="Nama Penulis"
                         name="penulis"
@@ -164,8 +156,8 @@ export default function BookModalBox({title, onSuccess, selectedBook=null, mode}
                     </FormField>
                     <FormField
                         readOnly={mode === "view"}
-                        value={penerbit}
-                        onChange={(e) => setPenerbit(e.target.value)}
+                        value={form.penerbit}
+                        onChange={(e) => setForm({...form, penerbit: e.target.value})}
                         type="text"
                         label="Penerbit"
                         name="penerbit"
@@ -175,8 +167,8 @@ export default function BookModalBox({title, onSuccess, selectedBook=null, mode}
                     </FormField>
                     <FormField
                         readOnly={mode === "view"}
-                        value={tanggalTerbit}
-                        onChange={(e) => setTanggalTerbit(e.target.value)}
+                        value={form.tanggalTerbit}
+                        onChange={(e) => setForm({...form, tanggalTerbit: e.target.value})}
                         type="date"
                         label="Tanggal Terbit"
                         name="tanggalTerbit"
@@ -186,8 +178,8 @@ export default function BookModalBox({title, onSuccess, selectedBook=null, mode}
                     </FormField>
                     <FormField
                         readOnly={mode === "view"}
-                        value={jumlahHalaman}
-                        onChange={(e) => setJumlahHalaman(e.target.value)}
+                        value={form.jumlahHalaman}
+                        onChange={(e) => setForm({...form, jumlahHalaman: e.target.value})}
                         type="number"
                         label="Jumlah Halaman"
                         name="jumlahHalaman"
@@ -195,21 +187,24 @@ export default function BookModalBox({title, onSuccess, selectedBook=null, mode}
                         icon="fa fa-file"
                         placeholder="Masukkan Jumlah Halaman">
                     </FormField>
+                    <div>
+                        <FormField
+                            readOnly={mode === "view"}
+                            value={form.noisbn}
+                            onChange={(e) => setForm({...form, noisbn: e.target.value})}
+                            type="text"
+                            label="No ISBN"
+                            name="noisbn"
+                            id="noisbn"
+                            icon="fa fa-barcode"
+                            placeholder="Masukkan No ISBN">
+                        </FormField>
+                        {isbnExists && <p className="text-xs text-red-500">Nomor ISBN ini sudah digunakan.</p>}
+                    </div>
                     <FormField
                         readOnly={mode === "view"}
-                        value={noisbn}
-                        onChange={(e) => setNoIsbn(e.target.value)}
-                        type="text"
-                        label="No ISBN"
-                        name="noisbn"
-                        id="noisbn"
-                        icon="fa fa-barcode"
-                        placeholder="Masukkan No ISBN">
-                    </FormField>
-                    <FormField
-                        readOnly={mode === "view"}
-                        value={stokBuku}
-                        onChange={(e) => setStokBuku(e.target.value)}
+                        value={form.stokBuku}
+                        onChange={(e) => setForm({...form, stokBuku: e.target.value})}
                         type="number"
                         label="Stok Buku"
                         name="stokBuku"

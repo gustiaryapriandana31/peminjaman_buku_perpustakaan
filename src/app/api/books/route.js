@@ -5,7 +5,8 @@ import prisma from "@/lib/prisma";
 export async function GET() {
     try {
         const books = await prisma.buku.findMany({ 
-            orderBy: { createdAt: "desc" }
+            orderBy: { createdAt: "desc" },
+            include: {kategoriBuku:true}
         });
 
         return new Response(JSON.stringify(books), {
@@ -39,7 +40,7 @@ export async function POST(req) {
                 judulBuku,
                 penulis,
                 penerbit,
-                tanggalTerbit: tanggalTerbit ? new Date(tanggalTerbit) : new Date(),
+                tanggalTerbit: new Date(tanggalTerbit),
                 jumlahHalaman : parseInt(jumlahHalaman),
                 noisbn,
                 stokBuku: parseInt(stokBuku),
@@ -57,7 +58,9 @@ export async function POST(req) {
         console.error("Gagal menambahkan data buku:", error);
         return new Response(
             JSON.stringify({ error: error.message || "Gagal menambahkan data buku" }),
-            { status: 500, headers: { "Content-Type": "application/json" } }
+            { status: 500, 
+                headers: { "Content-Type": "application/json" } 
+            }
         );
     }
 }

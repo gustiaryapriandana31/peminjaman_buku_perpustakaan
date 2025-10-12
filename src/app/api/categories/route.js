@@ -6,6 +6,11 @@ export async function GET() {
     try {
         const categories = await prisma.kategoriBuku.findMany({
             orderBy: { createdAt: "desc" },
+            include: {
+                _count: {
+                    select: { buku: true },
+                },
+            },
         });
         return new Response(JSON.stringify(categories), {
             status: 200,

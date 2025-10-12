@@ -1,39 +1,39 @@
 import FormField from "../molecules/FormField";
 import Button from "../atoms/Button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { alertError, alertSuccess } from "../../lib/alert/sweetAlert";
 
-export default function CategoryModalBox({onSuccess}) {
+export default function CategoryModalBox({title, onSuccess, selectedCategory=null, mode}) {
     const [namaKategori, setNamaKategori] = useState("");
-
-    const createCategory = async (namaKategori) => {
-        try {
-            const res = await fetch("/api/categories", {
-                method: "POST",
-                headers: { 
-                    "Accept": "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ namaKategori })
-            });
-            const data = await res.json();
-            setNamaKategori("");
-            return {res, data};
-        } catch(e) {
-            console.error("Gagal Menambahkan Data Kategori", e);   
-            return { res: { status: 500 }, data: { errors: ["Terjadi kesalahan"] } };
-        } 
-    };
     
+    useEffect(() => {
+        if (selectedCategory) {
+            setNamaKategori(selectedCategory.namaKategori || "")
+        }
+    }, [selectedCategory]);
+
     async function handleSubmit(e) {
         e.preventDefault();
 
-        const {res, data} = await createCategory(namaKategori);
-        if(res.ok) {
-            await alertSuccess("Kategori Berhasil Ditambahkan");
+        const res = await fetch(
+            mode === "edit" ? `/api/categories/${selectedCategory.id}` : "/api/categories",
+            {
+                method: mode === "edit" ? "PUT" : "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({namaKategori}),
+            }
+        );
+
+        if (res.ok) {
+            await alertSuccess(mode === "edit" ? "Kategori Berhasil Diperbarui" : "Kategori Berhasil Ditambahkan");
             if (onSuccess) onSuccess();
+            // Reset form setelah tambah kategori
+            if (mode === "create") {
+                setNamaKategori("")
+            }
         } else {
-            await alertError(data.errors || ["Terjadi kesalahan"]);
+            const err = await res.json()
+            await alertError(err.error || ["Terjadi kesalahan"]);
         }
     }
 
@@ -41,7 +41,7 @@ export default function CategoryModalBox({onSuccess}) {
     return (
         <>
             <form className="p-4 mb-20 space-y-4 bg-blue-900 shadow sm:p-6 rounded-xl" onSubmit={handleSubmit}>
-                <h1>Tambah Data Kategori Buku</h1>
+                <h1>{title}</h1>
                 <div className="grid grid-cols-2 gap-4">
                     <FormField
                         value={namaKategori}
@@ -53,7 +53,11 @@ export default function CategoryModalBox({onSuccess}) {
                         placeholder="Masukkan Data Kategori Buku">
                     </FormField>
                 </div>
-                <Button type="submit" className="w-full px-4 py-2 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">Simpan Data</Button>
+                <Button
+                    type="submit"
+                    className="w-full px-4 py-2 font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700">
+                    {mode === "edit" ? "Perbarui Data" : "Simpan Data"}
+                </Button>
             </form>
         </>
     )

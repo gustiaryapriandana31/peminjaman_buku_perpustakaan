@@ -11,7 +11,15 @@ export const alertSuccess = (message) => {
 export const alertError = (message) => {
     return Swal.fire({
         icon: 'error',
-        title: 'Oh No!! Error',
+        title: 'Ada Error Nih!!',
+        text: message,
+    });
+}   
+
+export const alertWarning = (message) => {
+    return Swal.fire({
+        icon: 'warning',
+        title: 'Peringatan!',
         text: message,
     });
 }   

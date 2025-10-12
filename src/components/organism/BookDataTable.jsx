@@ -47,8 +47,8 @@ export default function BookDataTable() {
             });
             const data = await res.json(); // ✅ baca respon JSON
             return { res, data };
-        } catch(e) {
-            console.error("Gagal Menghapus Data", e);   
+        } catch(error) {
+            console.error("Gagal Menghapus Data", error);   
             return { res: { status: 500 }, data: { errors: ["Terjadi kesalahan"] } };
         } 
     };
@@ -61,8 +61,8 @@ export default function BookDataTable() {
             setMode("view");
             setShowModal(true);
         } catch(error) {
-            console.error("Gagal Mengambil Detail Data Buku", e);   
-            await alertError(data.error || "Gagal mengambil data buku.");
+            console.error("Gagal Mengambil Detail Data Buku", error);   
+            await alertError(error.error || "Gagal mengambil data buku.");
         }
     }
     
@@ -74,13 +74,13 @@ export default function BookDataTable() {
             setMode("edit");
             setShowModal(true);
         } catch(error) {
-            console.error("Gagal Mengambil Data Buku untuk Diedit", e);   
-            await alertError(data.error || "Gagal mengambil data buku untuk diedit.");
+            console.error("Gagal Mengambil Data Buku untuk Diedit", error);   
+            await alertError(error.error || "Gagal mengambil data buku untuk diedit.");
         }
     }
 
     async function handleBookDelete(id) {
-        if (!await alertConfirm("Ingin hapus data buku ini?")) return;
+        if (!await alertConfirm("Apakah kamu yakin ingin menghapus data buku ini?")) return;
 
         const { res, data } = await deleteBook(id);
         if (res.ok) {
@@ -106,27 +106,27 @@ export default function BookDataTable() {
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
-                            <th className="px-3 py-2 text-xs text-left text-gray-500 uppercase sm:text-sm">
-                                No
-                            </th>
-                            <th className="px-3 py-2 text-xs text-left text-gray-500 uppercase sm:text-sm">
-                                Kategori Buku
-                            </th>
-                            <th className="px-3 py-2 text-xs text-left text-gray-500 uppercase sm:text-sm">
-                                Judul Buku 
-                            </th>
-                            <th className="hidden px-3 py-2 text-xs text-center text-gray-500 uppercase md:table-cell sm:text-sm">
-                                Penulis
-                            </th>
-                            <th className="hidden px-3 py-2 text-xs text-left text-gray-500 uppercase md:table-cell sm:text-sm">
-                                Penerbit
-                            </th>
-                            <th className="hidden px-3 py-2 text-xs text-left text-gray-500 uppercase md:table-cell sm:text-sm">
-                                Nomor ISBN
-                            </th>
-                            <th className="px-3 py-2 text-xs text-left text-gray-500 uppercase sm:text-sm">
-                                Aksi
-                            </th>
+                                <th className="px-3 py-2 text-xs text-left text-gray-500 uppercase sm:text-sm">
+                                    No
+                                </th>
+                                <th className="px-3 py-2 text-xs text-left text-gray-500 uppercase sm:text-sm">
+                                    Kategori Buku
+                                </th>
+                                <th className="px-3 py-2 text-xs text-left text-gray-500 uppercase sm:text-sm">
+                                    Judul Buku 
+                                </th>
+                                <th className="hidden px-3 py-2 text-xs text-center text-gray-500 uppercase md:table-cell sm:text-sm">
+                                    Penulis
+                                </th>
+                                <th className="hidden px-3 py-2 text-xs text-left text-gray-500 uppercase md:table-cell sm:text-sm">
+                                    Penerbit
+                                </th>
+                                <th className="hidden px-3 py-2 text-xs text-left text-gray-500 uppercase md:table-cell sm:text-sm">
+                                    Nomor ISBN
+                                </th>
+                                <th className="px-3 py-2 text-xs text-left text-gray-500 uppercase sm:text-sm">
+                                    Aksi
+                                </th>
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -134,11 +134,12 @@ export default function BookDataTable() {
                             <React.Fragment key={book.id}>
                                 <tr
                                 className="transition cursor-pointer hover:bg-gray-50 md:cursor-default"
-                                onClick={() => toggleRow(book.id)}
-                                >
-                                <td className="px-3 py-2 text-sm sm:text-base">{index + 1}</td>
+                                onClick={() => toggleRow(book.id)}>
                                     <td className="px-3 py-2 text-xs font-medium text-gray-900 sm:text-sm">
-                                        {book.idKategori}
+                                        {index + 1}
+                                    </td>
+                                    <td className="px-3 py-2 text-xs font-medium text-gray-900 sm:text-sm">
+                                        {book.kategoriBuku?.namaKategori || "-"}
                                     </td>
                                     <td className="px-3 py-2 text-xs font-medium text-gray-900 sm:text-sm">
                                         {book.judulBuku}
